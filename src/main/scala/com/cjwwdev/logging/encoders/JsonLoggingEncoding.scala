@@ -27,10 +27,12 @@ import com.typesafe.config.ConfigFactory
 import org.apache.commons.io.IOUtils.LINE_SEPARATOR
 import org.apache.commons.lang3.time.FastDateFormat
 
+import scala.util.Try
+
 class JsonLoggingEncoding extends EncoderBase[ILoggingEvent] {
 
   private val mapper       = new ObjectMapper().configure(Feature.ESCAPE_NON_ASCII, true)
-  private lazy val appName = Option(ConfigFactory.load().getString("service")).getOrElse("-")
+  private lazy val appName = Try(ConfigFactory.load().getString("appName")).fold(_ => "", identity)
   private val DATE_FORMAT  = "yyyy-MM-dd HH:mm:ss.SSSZZ"
 
   override def encode(event: ILoggingEvent): Array[Byte] = {
