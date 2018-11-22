@@ -30,10 +30,18 @@ import org.apache.commons.lang3.time.FastDateFormat
 import scala.util.Try
 
 class JsonLoggingEncoding extends EncoderBase[ILoggingEvent] {
+  private val mapper           = new ObjectMapper().configure(Feature.ESCAPE_NON_ASCII, true)
+  private lazy val appName     = Try(ConfigFactory.load().getString("appName")).fold(_ => "", identity)
+  private val DATE_FORMAT      = "yyyy-MM-dd HH:mm:ss.SSS"
+  private val requestTypeRegex = """^(HEAD|GET|POST|PUT|PATCH|POST) request to (.*) returned a \d{3} and took \d+ms$"""
 
-  private val mapper       = new ObjectMapper().configure(Feature.ESCAPE_NON_ASCII, true)
-  private lazy val appName = Try(ConfigFactory.load().getString("appName")).fold(_ => "", identity)
-  private val DATE_FORMAT  = "yyyy-MM-dd HH:mm:ss.SSSZZ"
+  private def processLog(message: String): Option[(String, Int, String)]  = message match {
+    case x if x.matches("""^(HEAD|GET|POST|PUT|PATCH|DELETE) request to (.*) returned a \d{3} and took \d+ms$""") =>
+      val digits = ("""\d+""".r findAllIn x).toList
+      val method = ("""(HEAD|GET|POST|PUT|PATCH|DELETE)""".r findAllIn x).toList.head
+      Some((method, digits.head.toInt, s"${digits.last}ms"))
+    case _ => None
+  }
 
   override def encode(event: ILoggingEvent): Array[Byte] = {
     val eventNode = mapper.createObjectNode()
@@ -46,9 +54,18 @@ class JsonLoggingEncoding extends EncoderBase[ILoggingEvent] {
       "serviceVersion" -> System.getProperty("version", "-"),
       "logger"         -> event.getLoggerName,
       "level"          -> event.getLevel.levelStr,
-      "thread"         -> event.getThreadName,
-      "message"        -> event.getMessage
+      "thread"         -> event.getThreadName
     )
+
+    processLog(event.getMessage).map { case (method, status, response) =>
+      eventNode.put("logType", "response")
+      eventNode.put("method", method)
+      eventNode.put("status", status)
+      eventNode.put("duration", response)
+    }.getOrElse {
+      eventNode.put("logType", "standard")
+      eventNode.put("message", event.getMessage)
+    }
 
     Option(event.getThrowableProxy).map(e => eventNode.put("exception", ThrowableProxyUtil.asString(e)))
 
