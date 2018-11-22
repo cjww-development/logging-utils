@@ -54,7 +54,8 @@ class JsonLoggingEncoding extends EncoderBase[ILoggingEvent] {
       "serviceVersion" -> System.getProperty("version", "-"),
       "logger"         -> event.getLoggerName,
       "level"          -> event.getLevel.levelStr,
-      "thread"         -> event.getThreadName
+      "thread"         -> event.getThreadName,
+      "message"        -> event.getMessage
     )
 
     processLog(event.getMessage).map { case (method, status, response) =>
@@ -64,7 +65,6 @@ class JsonLoggingEncoding extends EncoderBase[ILoggingEvent] {
       eventNode.put("duration", response)
     }.getOrElse {
       eventNode.put("logType", "standard")
-      eventNode.put("message", event.getMessage)
     }
 
     Option(event.getThrowableProxy).map(e => eventNode.put("exception", ThrowableProxyUtil.asString(e)))
