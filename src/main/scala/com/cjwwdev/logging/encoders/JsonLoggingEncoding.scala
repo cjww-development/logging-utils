@@ -23,24 +23,11 @@ import ch.qos.logback.classic.spi.{ILoggingEvent, ThrowableProxyUtil}
 import ch.qos.logback.core.encoder.EncoderBase
 import com.fasterxml.jackson.core.JsonGenerator.Feature
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.typesafe.config.ConfigFactory
 import org.apache.commons.io.IOUtils.LINE_SEPARATOR
 import org.apache.commons.lang3.time.FastDateFormat
 
-import scala.util.Try
-
-class JsonLoggingEncoding extends EncoderBase[ILoggingEvent] {
-  private val mapper           = new ObjectMapper().configure(Feature.ESCAPE_NON_ASCII, true)
-  private lazy val appName     = Try(ConfigFactory.load().getString("appName")).fold(_ => "", identity)
-  private val DATE_FORMAT      = "yyyy-MM-dd HH:mm:ss.SSS"
-  private val requestTypeRegex = """^(HEAD|GET|POST|PUT|PATCH|POST) request to (.*) returned a \d{3} and took \d+ms$"""
-
-  private def processLog(message: String): Option[(String, Int, String)]  = message match {
-    case x if x.matches("""^(HEAD|GET|POST|PUT|PATCH|DELETE) request to (.*) returned a \d{3} and took \d+ms$""") =>
-      val splitMessage = x.split(" ").toList
-      Some((splitMessage.head, splitMessage(splitMessage.length - 4).toInt, splitMessage.last))
-    case _ => None
-  }
+class JsonLoggingEncoding extends EncoderBase[ILoggingEvent] with EncoderConfig with EncoderUtils {
+  private val mapper = new ObjectMapper().configure(Feature.ESCAPE_NON_ASCII, true)
 
   override def encode(event: ILoggingEvent): Array[Byte] = {
     val eventNode = mapper.createObjectNode()
@@ -57,14 +44,21 @@ class JsonLoggingEncoding extends EncoderBase[ILoggingEvent] {
       "message"        -> event.getMessage
     )
 
-    processLog(event.getMessage).map { case (method, status, response) =>
-      eventNode.put("logType", "response")
-      eventNode.put("method", method)
-      eventNode.put("status", status)
-      eventNode.put("duration", response)
-    }.getOrElse {
-      eventNode.put("logType", "standard")
+    getLogType(event.getMessage) match {
+      case RequestLog(method, status, duration) =>
+        eventNode.put("logType", "request")
+        eventNode.put("method", method)
+        eventNode.put("status", status)
+        eventNode.put("duration", duration)
+      case OutboundLog(method, status) =>
+        eventNode.put("logType", "outbound")
+        eventNode.put("method", method)
+        eventNode.put("status", status)
+      case StandardLog =>
+        eventNode.put("logType", "standard")
     }
+
+    eventNode.put("requestId", getRequestIdFromMessage(event.getMessage))
 
     Option(event.getThrowableProxy).map(e => eventNode.put("exception", ThrowableProxyUtil.asString(e)))
 
