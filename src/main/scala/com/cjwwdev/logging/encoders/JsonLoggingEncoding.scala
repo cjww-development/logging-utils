@@ -44,7 +44,7 @@ class JsonLoggingEncoding extends EncoderBase[ILoggingEvent] with EncoderConfig 
       "message"        -> event.getMessage.replaceAll(requestIdRegex, "").trim
     )
 
-    getLogType(event.getMessage) match {
+    getLogType(event.getMessage.replaceAll(requestIdRegex, "").trim) match {
       case RequestLog(method, status, duration) =>
         eventNode.put("logType", "request")
         eventNode.put("method", method)
