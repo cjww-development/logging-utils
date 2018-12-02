@@ -48,7 +48,7 @@ trait EncoderUtils {
   }
 
   protected def getRequestIdFromMessage(msg: String): String = {
-    "requestId=\\[(([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})|(-))\\]".r
+    "requestId=\\[((requestId-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})|(-))\\]".r
       .findAllIn(msg)
       .toList
       .headOption

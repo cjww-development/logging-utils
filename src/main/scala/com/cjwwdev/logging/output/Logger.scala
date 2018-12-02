@@ -16,55 +16,55 @@
 
 package com.cjwwdev.logging.output
 
-import org.slf4j.{Logger => SLF4JLogger, LoggerFactory}
-import play.api.mvc.Request
+import org.slf4j.{LoggerFactory, Logger => SLF4JLogger}
+import play.api.mvc.RequestHeader
 
 trait Logger {
 
   private val logger: SLF4JLogger = LoggerFactory.getLogger(this.getClass)
 
-  private def getRequestId(implicit request: Request[_]): String = {
-    request.headers.get("requestId").getOrElse("-")
+  private def getRequestId(implicit rh: RequestHeader): String = {
+    rh.headers.get("requestId").getOrElse("-")
   }
 
   object LogAt {
-    def debug(msg: String)(implicit request: Request[_]): Unit = {
+    def debug(msg: String)(implicit rh: RequestHeader): Unit = {
       if(logger.isDebugEnabled) logger.debug(s"requestId=[$getRequestId] $msg")
     }
 
-    def debug(msg: String, e: Throwable)(implicit request: Request[_]): Unit = {
+    def debug(msg: String, e: Throwable)(implicit rh: RequestHeader): Unit = {
       if(logger.isDebugEnabled) logger.debug(s"requestId=[$getRequestId] $msg", e)
     }
 
-    def trace(msg: String)(implicit request: Request[_]): Unit = {
+    def trace(msg: String)(implicit rh: RequestHeader): Unit = {
       if(logger.isTraceEnabled) logger.trace(s"requestId=[$getRequestId] $msg")
     }
 
-    def trace(msg: String, e: Throwable)(implicit request: Request[_]): Unit = {
+    def trace(msg: String, e: Throwable)(implicit rh: RequestHeader): Unit = {
       if(logger.isTraceEnabled) logger.trace(s"requestId=[$getRequestId] $msg", e)
     }
 
-    def info(msg: String)(implicit request: Request[_]): Unit = {
+    def info(msg: String)(implicit rh: RequestHeader): Unit = {
       if(logger.isInfoEnabled) logger.info(s"requestId=[$getRequestId] $msg")
     }
 
-    def info(msg: String, e: Throwable)(implicit request: Request[_]): Unit = {
+    def info(msg: String, e: Throwable)(implicit rh: RequestHeader): Unit = {
       if(logger.isInfoEnabled) logger.info(s"requestId=[$getRequestId] $msg", e)
     }
 
-    def warn(msg: String)(implicit request: Request[_]): Unit = {
+    def warn(msg: String)(implicit rh: RequestHeader): Unit = {
       if(logger.isWarnEnabled) logger.warn(s"requestId=[$getRequestId] $msg")
     }
 
-    def warn(msg: String, e: Throwable)(implicit request: Request[_]): Unit = {
+    def warn(msg: String, e: Throwable)(implicit rh: RequestHeader): Unit = {
       if(logger.isWarnEnabled) logger.warn(s"requestId=[$getRequestId] $msg", e)
     }
 
-    def error(msg: String)(implicit request: Request[_]): Unit = {
+    def error(msg: String)(implicit rh: RequestHeader): Unit = {
       if(logger.isErrorEnabled) logger.error(s"requestId=[$getRequestId] $msg")
     }
 
-    def error(msg: String, e: Throwable)(implicit request: Request[_]): Unit = {
+    def error(msg: String, e: Throwable)(implicit rh: RequestHeader): Unit = {
       if(logger.isErrorEnabled) logger.error(s"requestId=[$getRequestId] $msg", e)
     }
   }

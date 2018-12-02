@@ -17,9 +17,9 @@
 package com.cjwwdev.logging.filters
 
 import akka.stream.Materializer
+import com.cjwwdev.logging.output.Logger
 import javax.inject.Inject
 import org.joda.time.DateTimeUtils
-import org.slf4j.{Logger, LoggerFactory}
 import play.api.Configuration
 import play.api.mvc.{Filter, RequestHeader, Result}
 import play.utils.Colors
@@ -32,19 +32,17 @@ class DefaultRequestLoggingFilter @Inject()(val config: Configuration,
   override protected val colouredOutput: Boolean = config.getOptional[Boolean]("logging.coloured").getOrElse(false)
 }
 
-trait RequestLoggingFilter extends Filter {
+trait RequestLoggingFilter extends Filter with Logger {
 
   protected val colouredOutput: Boolean
 
   implicit val ec: ExecutionContext
 
-  private val logger: Logger = LoggerFactory.getLogger(getClass)
-
   override def apply(f: RequestHeader => Future[Result])(rh: RequestHeader): Future[Result] = {
     val startTime = DateTimeUtils.currentTimeMillis()
     val result = f(rh)
     result map { res =>
-      logRequest(res.header.status, startTime, rh) foreach logger.info
+      logRequest(res.header.status, startTime, rh).foreach(msg => LogAt.info(msg)(rh))
       res
     }
   }
