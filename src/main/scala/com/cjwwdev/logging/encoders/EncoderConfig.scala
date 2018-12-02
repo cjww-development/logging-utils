@@ -22,8 +22,8 @@ import scala.util.Try
 
 trait EncoderConfig {
   protected lazy val appName      = Try(ConfigFactory.load().getString("appName")).fold(_ => "-", identity)
-  protected val DATE_FORMAT       = "yyyy-MM-dd HH:mm:ss.SSSZZ"
+  protected val DATE_FORMAT       = Try(ConfigFactory.load().getString("logging.dateFormat")).fold(_ => "yyyy-MM-dd HH:mm:ss.SSSZZ", identity)
   protected val requestTypeRegex  = """(HEAD|GET|POST|PUT|PATCH|DELETE) request to (.*) returned a \d{3} and took \d+ms"""
-  protected val requestIdRegex    = """requestId=\[(([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})|(-))\]"""
+  protected val requestIdRegex    = """requestId=\[((requestId-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})|(-))\]"""
   protected val outboundTypeRegex = """Outbound (HEAD|GET|POST|PUT|PATCH|DELETE) call to (.*) returned a \d{3}"""
 }

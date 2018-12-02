@@ -41,7 +41,7 @@ class JsonLoggingEncoding extends EncoderBase[ILoggingEvent] with EncoderConfig 
       "logger"         -> event.getLoggerName,
       "level"          -> event.getLevel.levelStr,
       "thread"         -> event.getThreadName,
-      "message"        -> event.getMessage
+      "message"        -> event.getMessage.replaceAll(requestIdRegex, "").trim
     )
 
     getLogType(event.getMessage) match {
