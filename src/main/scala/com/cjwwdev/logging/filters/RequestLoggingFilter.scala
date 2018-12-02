@@ -21,7 +21,9 @@ import com.cjwwdev.logging.output.Logger
 import javax.inject.Inject
 import org.joda.time.DateTimeUtils
 import play.api.Configuration
-import play.api.mvc.{Filter, RequestHeader, Result}
+import play.api.libs.typedmap.TypedMap
+import play.api.mvc.request.{RemoteConnection, RequestTarget}
+import play.api.mvc._
 import play.utils.Colors
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -42,7 +44,7 @@ trait RequestLoggingFilter extends Filter with Logger {
     val startTime = DateTimeUtils.currentTimeMillis()
     val result = f(rh)
     result map { res =>
-      logRequest(res.header.status, startTime, rh).foreach(msg => LogAt.info(msg)(rh))
+      logRequest(res.header.status, startTime, rh).foreach(msg => LogAt.info(msg)(RequestBuilder.buildEmptyRequest(rh)))
       res
     }
   }
@@ -63,4 +65,26 @@ trait RequestLoggingFilter extends Filter with Logger {
   private val colouredPath: String => String = path => if(colouredOutput) Colors.green(path) else path
   private val colouredStatus: Int => String = status => if(colouredOutput) Colors.cyan(s"$status") else s"$status"
   private val colouredResponseTime: Long => String = time => if(colouredOutput) Colors.magenta(s"$time") else s"$time"
+}
+
+trait RequestBuilder[T] {
+  def buildRequest(requestHeader: RequestHeader, requestBody: T): Request[T]
+}
+
+object RequestBuilder {
+  implicit val stringRequestBuilder: RequestBuilder[String] = new RequestBuilder[String] {
+    override def buildRequest(requestHeader: RequestHeader, requestBody: String): Request[String] = new Request[String] {
+      override def body: String                 = requestBody
+      override def connection: RemoteConnection = requestHeader.connection
+      override def method: String               = requestHeader.method
+      override def target: RequestTarget        = requestHeader.target
+      override def version: String              = requestHeader.version
+      override def headers: Headers             = requestHeader.headers
+      override def attrs: TypedMap              = requestHeader.attrs
+    }
+  }
+
+  def buildEmptyRequest(requestHeader: RequestHeader)(implicit requestBuilder: RequestBuilder[String]): Request[String] = {
+    requestBuilder.buildRequest(requestHeader, "")
+  }
 }
