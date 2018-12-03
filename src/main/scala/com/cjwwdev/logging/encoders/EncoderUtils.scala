@@ -45,7 +45,7 @@ trait EncoderUtils {
     val splitMessage = message.split(" ").toList
     val method       = splitMessage.find(httpVerbs.contains).getOrElse("-")
     val outboundHost = splitMessage
-      .find(_.matches(outboundTypeRegex))
+      .find(_.matches(outboundHostRegex))
       .map(_.replace("http://", "").replace("https://", "").replace(""":\d{4}""", ""))
       .getOrElse("-")
     OutboundLog(method, splitMessage.last.toInt, outboundHost)
