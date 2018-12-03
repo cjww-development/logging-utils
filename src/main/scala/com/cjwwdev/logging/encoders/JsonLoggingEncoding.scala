@@ -50,10 +50,11 @@ class JsonLoggingEncoding extends EncoderBase[ILoggingEvent] with EncoderConfig 
         eventNode.put("method", method)
         eventNode.put("status", status)
         eventNode.put("duration", duration)
-      case OutboundLog(method, status) =>
+      case OutboundLog(method, status, outboundHost) =>
         eventNode.put("logType", "outbound")
         eventNode.put("method", method)
         eventNode.put("status", status)
+        eventNode.put("outboundHost", outboundHost)
       case StandardLog =>
         eventNode.put("logType", "standard")
     }

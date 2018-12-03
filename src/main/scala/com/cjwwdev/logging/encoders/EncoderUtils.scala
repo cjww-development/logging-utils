@@ -20,7 +20,7 @@ import play.api.http.HttpVerbs
 
 sealed trait LogType
 case class RequestLog(method: String, status: Int, duration: String) extends LogType
-case class OutboundLog(method: String, status: Int) extends LogType
+case class OutboundLog(method: String, status: Int, outboundHost: String) extends LogType
 case object StandardLog extends LogType
 
 trait EncoderUtils {
@@ -44,7 +44,11 @@ trait EncoderUtils {
   private def createOutboundLog(message: String): OutboundLog = {
     val splitMessage = message.split(" ").toList
     val method       = splitMessage.find(httpVerbs.contains).getOrElse("-")
-    OutboundLog(method, splitMessage.last.toInt)
+    val outboundHost = splitMessage
+      .find(_.matches(outboundTypeRegex))
+      .map(_.replace("http://", "").replace("https://", "").replace(""":\d{4}""", ""))
+      .getOrElse("-")
+    OutboundLog(method, splitMessage.last.toInt, outboundHost)
   }
 
   protected def getRequestIdFromMessage(msg: String): String = {

@@ -26,4 +26,5 @@ trait EncoderConfig {
   protected val requestTypeRegex  = """(HEAD|GET|POST|PUT|PATCH|DELETE) request to (.*) returned a \d{3} and took \d+ms"""
   protected val requestIdRegex    = """requestId=\[((requestId-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})|(-))\]"""
   protected val outboundTypeRegex = """Outbound (HEAD|GET|POST|PUT|PATCH|DELETE) call to (.*) returned a \d{3}"""
+  protected val outboundHostRegex = """(http|https):\/\/.*:\d{4}"""
 }
