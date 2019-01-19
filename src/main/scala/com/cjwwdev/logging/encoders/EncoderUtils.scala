@@ -19,7 +19,7 @@ package com.cjwwdev.logging.encoders
 import play.api.http.HttpVerbs
 
 sealed trait LogType
-case class RequestLog(method: String, status: Int, duration: String) extends LogType
+case class RequestLog(method: String, status: Int, duration: Int) extends LogType
 case class OutboundLog(method: String, status: Int, outboundHost: String) extends LogType
 case object StandardLog extends LogType
 
@@ -38,7 +38,8 @@ trait EncoderUtils {
     val splitMessage = message.split(" ").toList
     val method       = splitMessage.find(httpVerbs.contains).getOrElse("-")
     val status       = splitMessage(splitMessage.length - 4).toInt
-    RequestLog(method, status, splitMessage.last)
+    val duration     = splitMessage.last.replace("ms", "").toInt
+    RequestLog(method, status, duration)
   }
 
   private def createOutboundLog(message: String): OutboundLog = {
@@ -47,6 +48,8 @@ trait EncoderUtils {
     val outboundHost = splitMessage
       .find(_.matches(outboundHostRegex))
       .map(_.replace("http://", "").replace("https://", "").replace(""":\d{4}""", ""))
+      .map(_.split("/").toList)
+      .map(_.head)
       .getOrElse("-")
     OutboundLog(method, splitMessage.last.toInt, outboundHost)
   }
