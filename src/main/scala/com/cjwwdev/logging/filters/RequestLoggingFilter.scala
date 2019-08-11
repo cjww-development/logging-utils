@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 CJWW Development
+ * Copyright 2019 CJWW Development
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,16 +72,14 @@ trait RequestBuilder[T] {
 }
 
 object RequestBuilder {
-  implicit val stringRequestBuilder: RequestBuilder[String] = new RequestBuilder[String] {
-    override def buildRequest(requestHeader: RequestHeader, requestBody: String): Request[String] = new Request[String] {
-      override def body: String                 = requestBody
-      override def connection: RemoteConnection = requestHeader.connection
-      override def method: String               = requestHeader.method
-      override def target: RequestTarget        = requestHeader.target
-      override def version: String              = requestHeader.version
-      override def headers: Headers             = requestHeader.headers
-      override def attrs: TypedMap              = requestHeader.attrs
-    }
+  implicit val stringRequestBuilder: RequestBuilder[String] = (requestHeader: RequestHeader, requestBody: String) => new Request[String] {
+    override def body: String                 = requestBody
+    override def connection: RemoteConnection = requestHeader.connection
+    override def method: String               = requestHeader.method
+    override def target: RequestTarget        = requestHeader.target
+    override def version: String              = requestHeader.version
+    override def headers: Headers             = requestHeader.headers
+    override def attrs: TypedMap              = requestHeader.attrs
   }
 
   def buildEmptyRequest(requestHeader: RequestHeader)(implicit requestBuilder: RequestBuilder[String]): Request[String] = {

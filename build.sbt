@@ -27,21 +27,21 @@ val btVersion: String = Try(ConfigFactory.load.getString("version")) match {
 val dependencies: Seq[ModuleID] = Seq(
   "ch.qos.logback"     % "logback-core"    % "1.2.3",
   "ch.qos.logback"     % "logback-classic" % "1.2.3",
-  "com.typesafe.play"  % "play_2.12"       % "2.6.20",
-  "org.apache.commons" % "commons-lang3"   % "3.4",
-  "commons-io"         % "commons-io"      % "2.4",
+  "com.typesafe.play"  % "play_2.13"       % "2.7.3",
+  "org.apache.commons" % "commons-lang3"   % "3.9",
+  "commons-io"         % "commons-io"      % "2.6",
 )
 
 lazy val library = Project(libraryName, file("."))
   .settings(
     version                              :=  btVersion,
-    scalaVersion                         :=  "2.12.7",
+    scalaVersion                         :=  "2.13.0",
     organization                         :=  "com.cjww-dev.libs",
     resolvers                            +=  "cjww-dev" at "http://dl.bintray.com/cjww-development/releases",
     libraryDependencies                  ++= dependencies,
     bintrayOrganization                  :=  Some("cjww-development"),
-    bintrayReleaseOnPublish in ThisBuild :=  true,
     bintrayRepository                    :=  "releases",
     bintrayOmitLicense                   :=  true,
+    bintrayReleaseOnPublish in ThisBuild :=  true,
     fork                    in Test      :=  true
   )
