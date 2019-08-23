@@ -21,7 +21,7 @@ import play.api.mvc.Request
 
 trait Logger {
 
-  private val logger: SLF4JLogger = LoggerFactory.getLogger(this.getClass)
+  val logger: SLF4JLogger = LoggerFactory.getLogger(this.getClass)
 
   private def getRequestId(implicit req: Request[_]): String = {
     req.headers.get("requestId").getOrElse("-")
